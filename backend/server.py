@@ -80,6 +80,12 @@ class UserCreate(BaseModel):
     semester: Optional[int] = None
     location: Optional[str] = None
 
+class PickupPoint(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    landmark: Optional[str] = None
+    estimatedTime: str  # e.g., "8:15 AM"
+
 class DriverRoute(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     driver_id: str
@@ -91,6 +97,7 @@ class DriverRoute(BaseModel):
     available_seats: int = 4
     price_per_seat: int = 50
     amenities: List[str] = []
+    pickup_points: List[PickupPoint] = []  # NEW: Pickup points along the route
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -104,6 +111,7 @@ class DriverRouteCreate(BaseModel):
     available_seats: int = 4
     price_per_seat: int = 50
     amenities: List[str] = []
+    pickup_points: List[PickupPoint] = []  # NEW: Pickup points
 
 class RideRequest(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
