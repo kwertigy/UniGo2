@@ -101,5 +101,5 @@ GET    /api/health             - Health check
 
 The app is ready for frontend and backend testing. All core features are implemented with premium UI/UX.
 
-**Preview URL**: https://neon-commute.preview.emergentagent.com
-**Backend API**: https://neon-commute.preview.emergentagent.com/api/
+**Preview URL**: https://rideshare-hub-127.preview.emergentagent.com
+**Backend API**: https://rideshare-hub-127.preview.emergentagent.com/api/
