@@ -25,6 +25,13 @@ export interface Driver {
   amenities: string[];
 }
 
+export interface PickupPoint {
+  id: string;
+  name: string;
+  landmark?: string;
+  estimatedTime: string;
+}
+
 export interface RideRequest {
   id: string;
   from: string;
@@ -32,6 +39,33 @@ export interface RideRequest {
   time: string;
   riders: number;
   tokens: number;
+}
+
+export interface AvailableRide {
+  id: string;
+  driverId: string;
+  driverName: string;
+  origin: string;
+  destination: string;
+  departureTime: string;
+  availableSeats: number;
+  pricePerSeat: number;
+  pickupPoints: PickupPoint[];
+  amenities: string[];
+  rating: number;
+  isFemale: boolean;
+}
+
+export interface RideRequestData {
+  id: string;
+  riderId: string;
+  riderName: string;
+  driverId: string;
+  driverName: string;
+  routeId: string;
+  pickupLocation: string;
+  pickupTime: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
 }
 
 export interface Rating {
