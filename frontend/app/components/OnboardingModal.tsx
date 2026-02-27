@@ -22,8 +22,6 @@ interface OnboardingModalProps {
   onComplete: () => void;
 }
 
-const VALID_EMAIL_DOMAIN = '@newhorizonindia.edu';
-
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onComplete }) => {
   const [step, setStep] = useState<'welcome' | 'college' | 'email' | 'verifying' | 'success'>('welcome');
   const [selectedCollege, setSelectedCollege] = useState(COLLEGES[0]);
