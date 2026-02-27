@@ -50,6 +50,17 @@ export const COLORS = {
   glassDark: 'rgba(28, 28, 30, 0.15)',
   glassLight: 'rgba(255, 255, 255, 0.1)',
   blur: 'rgba(0, 0, 0, 0.3)',
+  
+  // Additional colors for components
+  whiteAlpha40: 'rgba(255, 255, 255, 0.4)',
+  whiteAlpha60: 'rgba(255, 255, 255, 0.6)',
+  whiteAlpha80: 'rgba(255, 255, 255, 0.8)',
+  slate700: '#334155',
+  slate800: '#1E293B',
+  slate900: '#0F172A',
+  emeraldGreen: '#10B981',
+  electricBlue: '#3B82F6',
+  pink: '#EC4899',
 };
 
 export const SPACING = {
