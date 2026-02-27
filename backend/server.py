@@ -1,14 +1,15 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime
+import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,26 +25,60 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# WebSocket connection manager for real-time updates
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict = {}
+
+    async def connect(self, websocket: WebSocket, user_id: str):
+        await websocket.accept()
+        self.active_connections[user_id] = websocket
+
+    def disconnect(self, user_id: str):
+        if user_id in self.active_connections:
+            del self.active_connections[user_id]
+
+    async def send_personal_message(self, message: str, user_id: str):
+        if user_id in self.active_connections:
+            await self.active_connections[user_id].send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections.values():
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
 # ===== Models =====
 
 class College(BaseModel):
     id: str
     name: str
     short: str
+    department: Optional[str] = None
 
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    email: str
+    email: EmailStr
     college: College
+    department: Optional[str] = None
+    semester: Optional[int] = None
+    location: Optional[str] = None
     ecoScore: int = 0
+    carbonSaved: float = 0.0
     verified: bool = True
+    isDriving: bool = False
+    isDriver: bool = False
+    homeLocation: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserCreate(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     college: College
+    department: Optional[str] = None
+    semester: Optional[int] = None
+    location: Optional[str] = None
 
 class DriverRoute(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -52,8 +87,11 @@ class DriverRoute(BaseModel):
     origin: str
     destination: str
     departure_time: str
+    direction: str = "to_college"  # to_college or from_college
     available_seats: int = 4
+    price_per_seat: int = 50
     amenities: List[str] = []
+    is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DriverRouteCreate(BaseModel):
@@ -62,38 +100,51 @@ class DriverRouteCreate(BaseModel):
     origin: str
     destination: str
     departure_time: str
+    direction: str = "to_college"
     available_seats: int = 4
+    price_per_seat: int = 50
     amenities: List[str] = []
 
 class RideRequest(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     rider_id: str
     rider_name: str
-    from_location: str
-    to_location: str
-    time: str
-    riders_count: int = 1
-    tokens: int
-    status: str = "pending"  # pending, accepted, completed
+    driver_id: str
+    driver_name: str
+    route_id: str
+    pickup_location: str
+    status: str = "pending"  # pending, accepted, rejected, completed
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class RideRequestCreate(BaseModel):
     rider_id: str
     rider_name: str
-    from_location: str
-    to_location: str
-    time: str
-    riders_count: int = 1
-    tokens: int
+    driver_id: str
+    driver_name: str
+    route_id: str
+    pickup_location: str
+
+class RideMatch(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    ride_request_id: str
+    rider_id: str
+    driver_id: str
+    route_id: str
+    status: str = "matched"  # matched, in_progress, completed
+    carbon_saved: float = 2.5  # kg CO2
+    split_cost: int = 50
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Rating(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     ride_id: str
     rider_id: str
     driver_id: str
-    smoothness: int  # 1-10
-    comfort: int  # 1-10
+    smoothness: int
+    comfort: int
     amenities: List[str] = []
+    match_reason: Optional[str] = None  # "Both 6th Sem CS", "Both live in Indiranagar"
+    trust_score: int = 5
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class RatingCreate(BaseModel):
@@ -103,28 +154,14 @@ class RatingCreate(BaseModel):
     smoothness: int
     comfort: int
     amenities: List[str] = []
-
-class Subscription(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    tier_name: str
-    price: int
-    rides_remaining: int
-    validity: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-class SubscriptionCreate(BaseModel):
-    user_id: str
-    tier_name: str
-    price: int
-    rides_remaining: int
-    validity: str
+    match_reason: Optional[str] = None
+    trust_score: int = 5
 
 # ===== User Endpoints =====
 
 @api_router.post("/users", response_model=User)
 async def create_user(user_input: UserCreate):
-    """Create a new user"""
+    """Create a new user - accepts any email"""
     user_dict = user_input.dict()
     user_obj = User(**user_dict)
     await db.users.insert_one(user_obj.dict())
@@ -138,22 +175,30 @@ async def get_user(user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
     return User(**user)
 
-@api_router.get("/users", response_model=List[User])
-async def get_users():
-    """Get all users"""
-    users = await db.users.find().to_list(1000)
-    return [User(**user) for user in users]
-
-@api_router.put("/users/{user_id}/eco-score")
-async def update_eco_score(user_id: str, eco_score: int):
-    """Update user's eco score"""
+@api_router.put("/users/{user_id}/driving-status")
+async def update_driving_status(user_id: str, is_driving: bool):
+    """Update user's driving status"""
     result = await db.users.update_one(
         {"id": user_id},
-        {"$set": {"ecoScore": eco_score}}
+        {"$set": {"isDriving": is_driving, "isDriver": True}}
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"success": True, "ecoScore": eco_score}
+    
+    # Broadcast to all connected riders
+    await manager.broadcast(json.dumps({
+        "type": "driver_status_update",
+        "user_id": user_id,
+        "is_driving": is_driving
+    }))
+    
+    return {"success": True, "isDriving": is_driving}
+
+@api_router.get("/users/active-drivers/list")
+async def get_active_drivers():
+    """Get all users who are currently driving"""
+    drivers = await db.users.find({"isDriving": True}).to_list(100)
+    return {"drivers": [User(**driver) for driver in drivers]}
 
 # ===== Driver Routes Endpoints =====
 
@@ -163,72 +208,126 @@ async def create_driver_route(route_input: DriverRouteCreate):
     route_dict = route_input.dict()
     route_obj = DriverRoute(**route_dict)
     await db.driver_routes.insert_one(route_obj.dict())
+    
+    # Update user driving status
+    await db.users.update_one(
+        {"id": route_input.driver_id},
+        {"$set": {"isDriving": True, "isDriver": True}}
+    )
+    
+    # Broadcast to all riders
+    await manager.broadcast(json.dumps({
+        "type": "new_route",
+        "route": route_obj.dict()
+    }))
+    
     return route_obj
 
-@api_router.get("/driver-routes", response_model=List[DriverRoute])
-async def get_driver_routes():
-    """Get all available driver routes"""
-    routes = await db.driver_routes.find().to_list(1000)
+@api_router.get("/driver-routes/active", response_model=List[DriverRoute])
+async def get_active_routes():
+    """Get all active driver routes"""
+    routes = await db.driver_routes.find({"is_active": True}).to_list(100)
     return [DriverRoute(**route) for route in routes]
 
-@api_router.get("/driver-routes/{driver_id}", response_model=List[DriverRoute])
-async def get_driver_routes_by_driver(driver_id: str):
-    """Get routes published by a specific driver"""
-    routes = await db.driver_routes.find({"driver_id": driver_id}).to_list(1000)
-    return [DriverRoute(**route) for route in routes]
-
-@api_router.delete("/driver-routes/{route_id}")
-async def delete_driver_route(route_id: str):
-    """Delete a driver route"""
-    result = await db.driver_routes.delete_one({"id": route_id})
-    if result.deleted_count == 0:
+@api_router.put("/driver-routes/{route_id}/deactivate")
+async def deactivate_route(route_id: str):
+    """Deactivate a route"""
+    result = await db.driver_routes.update_one(
+        {"id": route_id},
+        {"$set": {"is_active": False}}
+    )
+    if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Route not found")
     return {"success": True}
 
-# ===== Ride Requests Endpoints =====
+# ===== Ride Request Endpoints (Handshake Logic) =====
 
 @api_router.post("/ride-requests", response_model=RideRequest)
 async def create_ride_request(request_input: RideRequestCreate):
-    """Create a new ride request"""
+    """Create a ride request (Step A: User clicks 'Request')"""
     request_dict = request_input.dict()
     request_obj = RideRequest(**request_dict)
     await db.ride_requests.insert_one(request_obj.dict())
+    
+    # Send real-time notification to driver
+    await manager.send_personal_message(
+        json.dumps({
+            "type": "new_ride_request",
+            "request": request_obj.dict()
+        }),
+        request_input.driver_id
+    )
+    
     return request_obj
 
-@api_router.get("/ride-requests", response_model=List[RideRequest])
-async def get_ride_requests(status: Optional[str] = None):
-    """Get all ride requests, optionally filtered by status"""
-    query = {"status": status} if status else {}
-    requests = await db.ride_requests.find(query).to_list(1000)
-    return [RideRequest(**req) for req in requests]
+@api_router.get("/ride-requests/driver/{driver_id}")
+async def get_driver_requests(driver_id: str):
+    """Get all pending requests for a driver (Step B: Driver listens)"""
+    requests = await db.ride_requests.find({
+        "driver_id": driver_id,
+        "status": "pending"
+    }).to_list(100)
+    return {"requests": [RideRequest(**req) for req in requests]}
 
 @api_router.put("/ride-requests/{request_id}/accept")
-async def accept_ride_request(request_id: str, driver_id: str):
-    """Accept a ride request"""
-    result = await db.ride_requests.update_one(
+async def accept_ride_request(request_id: str):
+    """Accept a ride request (Step C: Driver clicks 'Accept')"""
+    request = await db.ride_requests.find_one({"id": request_id})
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    # Update request status
+    await db.ride_requests.update_one(
         {"id": request_id},
-        {"$set": {"status": "accepted", "driver_id": driver_id}}
+        {"$set": {"status": "accepted"}}
     )
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Ride request not found")
-    return {"success": True}
+    
+    # Create ride match
+    match = RideMatch(
+        ride_request_id=request_id,
+        rider_id=request["rider_id"],
+        driver_id=request["driver_id"],
+        route_id=request["route_id"]
+    )
+    await db.ride_matches.insert_one(match.dict())
+    
+    # Update carbon credits
+    await db.users.update_one(
+        {"id": request["rider_id"]},
+        {"$inc": {"carbonSaved": 2.5, "ecoScore": 10}}
+    )
+    await db.users.update_one(
+        {"id": request["driver_id"]},
+        {"$inc": {"carbonSaved": 2.5, "ecoScore": 15}}
+    )
+    
+    # Send success notification to rider
+    await manager.send_personal_message(
+        json.dumps({
+            "type": "ride_accepted",
+            "match": match.dict()
+        }),
+        request["rider_id"]
+    )
+    
+    return {"success": True, "match": match}
 
-@api_router.put("/ride-requests/{request_id}/complete")
-async def complete_ride_request(request_id: str):
-    """Mark ride request as completed"""
+@api_router.put("/ride-requests/{request_id}/reject")
+async def reject_ride_request(request_id: str):
+    """Reject a ride request"""
     result = await db.ride_requests.update_one(
         {"id": request_id},
-        {"$set": {"status": "completed"}}
+        {"$set": {"status": "rejected"}}
     )
     if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Ride request not found")
+        raise HTTPException(status_code=404, detail="Request not found")
     return {"success": True}
 
 # ===== Ratings Endpoints =====
 
 @api_router.post("/ratings", response_model=Rating)
 async def create_rating(rating_input: RatingCreate):
-    """Submit a ride rating"""
+    """Submit a ride rating (Campus Match)"""
     rating_dict = rating_input.dict()
     rating_obj = Rating(**rating_dict)
     await db.ratings.insert_one(rating_obj.dict())
@@ -239,40 +338,56 @@ async def create_rating(rating_input: RatingCreate):
         avg_rating = sum((r['smoothness'] + r['comfort']) / 2 for r in driver_ratings) / len(driver_ratings)
         await db.users.update_one(
             {"id": rating_input.driver_id},
-            {"$set": {"rating": round(avg_rating / 2, 1)}}  # Scale to 5-star
+            {"$set": {"rating": round(avg_rating / 2, 1)}}
         )
     
     return rating_obj
 
-@api_router.get("/ratings/driver/{driver_id}", response_model=List[Rating])
-async def get_driver_ratings(driver_id: str):
-    """Get all ratings for a driver"""
-    ratings = await db.ratings.find({"driver_id": driver_id}).to_list(1000)
-    return [Rating(**rating) for rating in ratings]
+# ===== College Admin Endpoints =====
 
-# ===== Subscriptions Endpoints =====
+@api_router.get("/admin/college/{college_id}/stats")
+async def get_college_stats(college_id: str):
+    """Get live stats for college admin dashboard"""
+    total_users = await db.users.count_documents({"college.id": college_id})
+    active_drivers = await db.users.count_documents({"college.id": college_id, "isDriving": True})
+    active_riders = await db.users.count_documents({"college.id": college_id, "isDriving": False})
+    total_rides = await db.ride_matches.count_documents({})
+    pending_verifications = await db.users.count_documents({"college.id": college_id, "verified": False})
+    
+    return {
+        "total_users": total_users,
+        "active_drivers": active_drivers,
+        "active_riders": active_riders,
+        "total_rides": total_rides,
+        "pending_verifications": pending_verifications,
+        "carbon_saved": 125.5  # Calculate from rides
+    }
 
-@api_router.post("/subscriptions", response_model=Subscription)
-async def create_subscription(sub_input: SubscriptionCreate):
-    """Create a new subscription"""
-    sub_dict = sub_input.dict()
-    sub_obj = Subscription(**sub_dict)
-    await db.subscriptions.insert_one(sub_obj.dict())
-    return sub_obj
+@api_router.get("/admin/college/{college_id}/users")
+async def get_college_users(college_id: str):
+    """Get all users from a specific college"""
+    users = await db.users.find({"college.id": college_id}).to_list(1000)
+    return {"users": [User(**user) for user in users]}
 
-@api_router.get("/subscriptions/{user_id}", response_model=List[Subscription])
-async def get_user_subscriptions(user_id: str):
-    """Get subscriptions for a user"""
-    subscriptions = await db.subscriptions.find({"user_id": user_id}).to_list(1000)
-    return [Subscription(**sub) for sub in subscriptions]
+# ===== WebSocket Endpoint =====
+
+@app.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await manager.connect(websocket, user_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Handle incoming messages if needed
+    except WebSocketDisconnect:
+        manager.disconnect(user_id)
 
 # ===== Health Check =====
 
 @api_router.get("/")
 async def root():
     return {
-        "message": "CampusPool API",
-        "version": "1.0.0",
+        "message": "CampusPool API - Multi-College Ecosystem",
+        "version": "2.0.0",
         "status": "active"
     }
 
