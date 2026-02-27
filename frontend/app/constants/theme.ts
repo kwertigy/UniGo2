@@ -1,32 +1,32 @@
-// CampusPool Theme Constants
+// CampusPool Soft UI Theme
 
 export const COLORS = {
-  // Base
-  background: '#020617',
-  slate950: '#020617',
-  slate900: '#0f172a',
-  slate800: '#1e293b',
-  slate700: '#334155',
+  // Soft UI Light Mode
+  background: '#F7F8FA',
+  white: '#FFFFFF',
   
-  // Accent Colors
-  electricBlue: '#3b82f6',
-  electricBlueDark: '#2563eb',
-  emeraldGreen: '#10b981',
-  emeraldGreenDark: '#059669',
+  // Primary Accent
+  peach: '#F28C68',
+  peachLight: '#FFB199',
+  peachDark: '#E86D45',
   
-  // UI
-  glass: 'rgba(255, 255, 255, 0.1)',
-  glassDark: 'rgba(0, 0, 0, 0.3)',
-  white: '#ffffff',
-  whiteAlpha80: 'rgba(255, 255, 255, 0.8)',
-  whiteAlpha60: 'rgba(255, 255, 255, 0.6)',
-  whiteAlpha40: 'rgba(255, 255, 255, 0.4)',
+  // System Grays (Apple Style)
+  gray1: '#1C1C1E',
+  gray2: '#3A3A3C',
+  gray3: '#48484A',
+  gray4: '#8E8E93',
+  gray5: '#C7C7CC',
+  gray6: '#E5E5EA',
   
-  // Status
-  success: '#10b981',
-  warning: '#f59e0b',
-  error: '#ef4444',
-  pink: '#ec4899',
+  // Functional
+  success: '#34C759',
+  warning: '#FF9500',
+  error: '#FF3B30',
+  blue: '#007AFF',
+  
+  // Shadows
+  shadowLight: 'rgba(0, 0, 0, 0.08)',
+  shadowMedium: 'rgba(0, 0, 0, 0.12)',
 };
 
 export const SPACING = {
@@ -40,23 +40,21 @@ export const SPACING = {
 
 export const BORDER_RADIUS = {
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  md: 16,
+  lg: 24,
+  xl: 32,
   full: 9999,
 };
 
 export const FONTS = {
-  regular: 'System',
-  medium: 'System',
-  bold: 'System',
+  regular: '-apple-system',
   sizes: {
     xs: 12,
     sm: 14,
     md: 16,
-    lg: 18,
-    xl: 24,
-    xxl: 32,
+    lg: 20,
+    xl: 28,
+    xxl: 34,
   },
 };
 
@@ -66,19 +64,21 @@ export const COLLEGES = [
   { id: '3', name: 'PES University (PESU)', short: 'PESU' },
   { id: '4', name: 'BMS College of Engineering (BMSCE)', short: 'BMSCE' },
   { id: '5', name: 'MS Ramaiah Institute of Technology', short: 'MSRIT' },
-  { id: '6', name: 'Bangalore Institute of Technology', short: 'BIT' },
 ];
 
-// NHCE Coordinates (Marathahalli, Bangalore)
-export const NHCE_COORDINATES = {
-  latitude: 12.9611159,
-  longitude: 77.7397419,
+export const SHADOW_STYLES = {
+  soft: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  medium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
+  },
 };
-
-// Common starting points
-export const COMMON_LOCATIONS = [
-  { name: 'Indiranagar', latitude: 12.9716, longitude: 77.6412 },
-  { name: 'Koramangala', latitude: 12.9352, longitude: 77.6245 },
-  { name: 'Whitefield', latitude: 12.9698, longitude: 77.7499 },
-  { name: 'Marathahalli', latitude: 12.9591, longitude: 77.7010 },
-];

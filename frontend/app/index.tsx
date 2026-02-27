@@ -6,32 +6,41 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from './store/appStore';
 import { OnboardingModal } from './components/OnboardingModal';
-import { ModeToggle } from './components/ModeToggle';
 import { RiderDashboard } from './components/RiderDashboard';
 import { DriverDashboard } from './components/DriverDashboard';
 import { PaymentModal } from './components/PaymentModal';
 import { VibeCheckModal } from './components/VibeCheckModal';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS } from './constants/theme';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOW_STYLES } from './constants/theme';
 import { SubscriptionTier, Rating } from './types';
 
 export default function Index() {
-  const { user, isOnboarded, mode, setOnboarded, loadPersistedData } = useAppStore();
+  const { user, isOnboarded, mode, setOnboarded, setMode, loadPersistedData } = useAppStore();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
   const [showVibeCheck, setShowVibeCheck] = useState(false);
+  const toggleAnim = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadPersistedData().then(() => {
       if (!isOnboarded) {
-        setShowOnboarding(true);
+        setTimeout(() => setShowOnboarding(true), 500);
       }
     });
   }, []);
+
+  useEffect(() => {
+    Animated.spring(toggleAnim, {
+      toValue: mode === 'rider' ? 0 : 1,
+      friction: 8,
+      useNativeDriver: false,
+    }).start();
+  }, [mode]);
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -46,50 +55,65 @@ export default function Index() {
   const handlePaymentSuccess = () => {
     setShowPayment(false);
     setSelectedTier(null);
-    // You could show a success toast here
   };
 
   const handleRatingSubmit = (rating: Rating) => {
     console.log('Rating submitted:', rating);
     setShowVibeCheck(false);
-    // You could send this to the backend
   };
+
+  const toggleLeft = toggleAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['4%', '52%'],
+  });
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       
-      {/* Header */}
+      {/* Floating Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="school" size={28} color={COLORS.electricBlue} />
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>CampusPool</Text>
-            {user?.college && (
-              <Text style={styles.headerSubtitle}>@ {user.college.short}</Text>
-            )}
-          </View>
-        </View>
-        <View style={styles.headerRight}>
-          {/* Eco Score */}
-          <View style={styles.ecoScoreBadge}>
-            <Ionicons name="leaf" size={16} color={COLORS.emeraldGreen} />
-            <Text style={styles.ecoScoreText}>{user?.ecoScore || 0}</Text>
-          </View>
-          {/* Profile */}
-          <TouchableOpacity style={styles.profileButton}>
-            <Ionicons name="person-circle" size={32} color={COLORS.electricBlue} />
-            {user?.verified && (
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark" size={10} color={COLORS.white} />
-              </View>
-            )}
-          </TouchableOpacity>
+        <View style={styles.logo}>
+          <Ionicons name="car-sport" size={24} color={COLORS.peach} />
+          <Text style={styles.logoText}>CampusPool</Text>
+          {user?.college && (
+            <Text style={styles.collegeText}>@ {user.college.short}</Text>
+          )}
         </View>
       </View>
 
-      {/* Mode Toggle */}
-      <ModeToggle />
+      {/* Floating Mode Toggle */}
+      <View style={styles.toggleContainer}>
+        <View style={[styles.togglePill, SHADOW_STYLES.soft]}>
+          <Animated.View
+            style={[
+              styles.toggleIndicator,
+              {
+                left: toggleLeft,
+                backgroundColor: COLORS.peach,
+              },
+            ]}
+          />
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={() => setMode('rider')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.toggleText, mode === 'rider' && styles.toggleTextActive]}>
+              Rider
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={() => setMode('driver')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.toggleText, mode === 'driver' && styles.toggleTextActive]}>
+              Driver
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Dashboard Content */}
       <View style={styles.content}>
@@ -100,13 +124,13 @@ export default function Index() {
         )}
       </View>
 
-      {/* Floating Test Button for Vibe Check */}
+      {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.floatingButton}
+        style={[styles.fab, SHADOW_STYLES.medium]}
         onPress={() => setShowVibeCheck(true)}
-        activeOpacity={0.8}
+        activeOpacity={0.9}
       >
-        <Ionicons name="star" size={24} color={COLORS.white} />
+        <Ionicons name="star" size={28} color={COLORS.white} />
       </TouchableOpacity>
 
       {/* Modals */}
@@ -136,85 +160,69 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.slate900,
   },
-  headerLeft: {
+  logo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
   },
-  headerText: {
-    flexDirection: 'column',
-  },
-  headerTitle: {
+  logoText: {
     fontSize: FONTS.sizes.lg,
-    fontWeight: 'bold',
-    color: COLORS.white,
+    fontWeight: '700',
+    color: COLORS.gray1,
   },
-  headerSubtitle: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.electricBlue,
-    fontWeight: '600',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  ecoScoreBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-    backgroundColor: COLORS.emeraldGreen + '20',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: BORDER_RADIUS.full,
-  },
-  ecoScoreText: {
+  collegeText: {
     fontSize: FONTS.sizes.sm,
-    fontWeight: '600',
-    color: COLORS.emeraldGreen,
+    color: COLORS.gray4,
+    fontWeight: '500',
   },
-  profileButton: {
+  toggleContainer: {
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
+  togglePill: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.full,
+    padding: 4,
     position: 'relative',
   },
-  verifiedBadge: {
+  toggleIndicator: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.emeraldGreen,
+    width: '46%',
+    height: '86%',
     borderRadius: BORDER_RADIUS.full,
-    width: 14,
-    height: 14,
-    justifyContent: 'center',
+    top: '7%',
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.background,
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  toggleText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.gray4,
+    fontWeight: '600',
+  },
+  toggleTextActive: {
+    color: COLORS.white,
   },
   content: {
     flex: 1,
-    marginTop: SPACING.md,
   },
-  floatingButton: {
+  fab: {
     position: 'absolute',
     bottom: SPACING.xl,
     right: SPACING.xl,
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.warning,
+    backgroundColor: COLORS.peach,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: COLORS.warning,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });
