@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: COLORS.whiteAlpha40,
+    borderColor: COLORS.glassWhiteBorder,
   },
   content: {
     padding: 16,
