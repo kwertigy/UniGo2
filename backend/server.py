@@ -121,6 +121,7 @@ class RideRequest(BaseModel):
     driver_name: str
     route_id: str
     pickup_location: str
+    pickup_time: str = ""  # NEW: When rider will be picked up
     status: str = "pending"  # pending, accepted, rejected, completed
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -131,6 +132,7 @@ class RideRequestCreate(BaseModel):
     driver_name: str
     route_id: str
     pickup_location: str
+    pickup_time: str = ""  # NEW: When rider will be picked up
 
 class RideMatch(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
