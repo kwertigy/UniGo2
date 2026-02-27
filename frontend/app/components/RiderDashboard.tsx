@@ -7,12 +7,26 @@ import {
   ScrollView,
   Switch,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { GlassContainer } from '../components/GlassContainer';
 import { COLORS, SPACING, BORDER_RADIUS, FONTS, NHCE_COORDINATES, COMMON_LOCATIONS } from '../constants/theme';
 import { SubscriptionTier } from '../types';
+
+// Conditional import for react-native-maps (only works on native platforms)
+let MapView: any = null;
+let Marker: any = null;
+let Polyline: any = null;
+let PROVIDER_DEFAULT: any = null;
+
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps');
+  MapView = Maps.default;
+  Marker = Maps.Marker;
+  Polyline = Maps.Polyline;
+  PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
+}
 
 const { width } = Dimensions.get('window');
 
