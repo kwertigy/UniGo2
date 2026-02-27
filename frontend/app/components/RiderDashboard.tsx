@@ -265,23 +265,6 @@ const styles = StyleSheet.create({
     height: 300,
     overflow: 'hidden',
   },
-  map: {
-    flex: 1,
-  },
-  campusMarker: {
-    backgroundColor: COLORS.electricBlue,
-    padding: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 2,
-    borderColor: COLORS.white,
-  },
-  driverMarker: {
-    backgroundColor: COLORS.emeraldGreen,
-    padding: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 2,
-    borderColor: COLORS.white,
-  },
   driversSection: {
     paddingHorizontal: SPACING.md,
     marginTop: SPACING.md,
