@@ -74,8 +74,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
       return false;
     }
     
-    if (!emailInput.endsWith(VALID_EMAIL_DOMAIN)) {
-      setEmailError(`CampusPool is exclusive to NHCE students. Please use your ${VALID_EMAIL_DOMAIN} email.`);
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput)) {
+      setEmailError('Please enter a valid email address');
       return false;
     }
     
