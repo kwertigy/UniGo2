@@ -1,18 +1,23 @@
-// CampusPool Enhanced Professional Dark Palette
+// CampusPool Premium Glass Design System
 
 export const COLORS = {
-  // Enhanced Dark Mode (Better Depth)
+  // Enhanced Dark Mode
   background: '#1A1A1A',
-  backgroundRider: '#0F172A', // Midnight Navy for Rider
-  backgroundDriver: '#18181B', // Charcoal Grey for Driver
+  backgroundRider: '#0F172A',
+  backgroundDriver: '#18181B',
+  
+  // Pink Mode Overlay
+  pinkModeOverlay: 'rgba(255, 20, 147, 0.15)',
+  pinkModeFrost: 'rgba(255, 192, 203, 0.1)',
   
   cardSurface: '#1C1C1E',
   cardBorder: '#2C2C2E',
   cardStroke: '#3A3A3C',
+  glassWhiteBorder: 'rgba(255, 255, 255, 0.5)',
   elevated: '#2C2C2E',
   
   // Primary Accent
-  orange: '#FF7F50', // Vibrant Sunset Orange
+  orange: '#FF7F50',
   orangeLight: '#FFB199',
   orangeGlow: 'rgba(255, 127, 80, 0.3)',
   orangeDark: '#FF6B35',
@@ -21,13 +26,18 @@ export const COLORS = {
   pinkPool: '#FF1493',
   pinkPoolGlow: 'rgba(255, 20, 147, 0.4)',
   pinkPoolBorder: 'rgba(255, 192, 203, 0.6)',
-  roseGold: '#E0A694',
+  roseGlow: 'rgba(255, 182, 193, 0.3)',
   
-  // Text (High Contrast)
-  textPrimary: 'rgba(255, 255, 255, 0.95)',
+  // Map Colors
+  neonBlue: '#00D9FF',
+  neonBlueGlow: 'rgba(0, 217, 255, 0.6)',
+  dottedWhite: 'rgba(255, 255, 255, 0.4)',
+  
+  // Text (Stark White)
+  white: '#FFFFFF',
+  textPrimary: '#FFFFFF',
   textSecondary: '#A8A8A8',
   textTertiary: '#636366',
-  white: '#FFFFFF',
   
   // Functional
   success: '#32D74B',
@@ -40,10 +50,6 @@ export const COLORS = {
   glassDark: 'rgba(28, 28, 30, 0.15)',
   glassLight: 'rgba(255, 255, 255, 0.1)',
   blur: 'rgba(0, 0, 0, 0.3)',
-  
-  // Gradients
-  meshStart: '#0A0A0A',
-  meshEnd: '#1A1A1D',
 };
 
 export const SPACING = {
@@ -85,11 +91,11 @@ export const FONTS = {
 };
 
 export const COLLEGES = [
-  { id: '1', name: 'New Horizon College of Engineering (NHCE)', short: 'NHCE' },
-  { id: '2', name: 'RV College of Engineering (RVCE)', short: 'RVCE' },
-  { id: '3', name: 'PES University (PESU)', short: 'PESU' },
-  { id: '4', name: 'BMS College of Engineering (BMSCE)', short: 'BMSCE' },
-  { id: '5', name: 'MS Ramaiah Institute of Technology', short: 'MSRIT' },
+  { id: '1', name: 'New Horizon College of Engineering (NHCE)', short: 'NHCE', department: 'Computer Science' },
+  { id: '2', name: 'RV College of Engineering (RVCE)', short: 'RVCE', department: 'Electronics' },
+  { id: '3', name: 'PES University (PESU)', short: 'PESU', department: 'Information Science' },
+  { id: '4', name: 'BMS College of Engineering (BMSCE)', short: 'BMSCE', department: 'Mechanical' },
+  { id: '5', name: 'MS Ramaiah Institute of Technology', short: 'MSRIT', department: 'Civil' },
 ];
 
 export const SHADOW_STYLES = {
@@ -120,5 +126,12 @@ export const SHADOW_STYLES = {
     shadowOpacity: 0.5,
     shadowRadius: 20,
     elevation: 12,
+  },
+  pinkGlow: {
+    shadowColor: COLORS.pinkPool,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 14,
   },
 };

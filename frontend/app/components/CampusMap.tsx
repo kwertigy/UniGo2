@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONTS, BORDER_RADIUS } from '../constants/theme';
 import { Svg, Path, Circle, Line, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
@@ -11,14 +11,42 @@ interface CampusMapProps {
 }
 
 export const CampusMap: React.FC<CampusMapProps> = ({ mode }) => {
+  const pulseAnim1 = useRef(new Animated.Value(1)).current;
+  const pulseAnim2 = useRef(new Animated.Value(1)).current;
+  const pulseAnim3 = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const createPulse = (anim: Animated.Value, delay: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(anim, {
+            toValue: 1.3,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
+
+    createPulse(pulseAnim1, 0);
+    createPulse(pulseAnim2, 300);
+    createPulse(pulseAnim3, 600);
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.mapCard}>
         <Svg width="100%" height="100%" viewBox="0 0 320 240">
           <Defs>
-            <SvgGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset="0%" stopColor="#0A84FF" stopOpacity="0.8" />
-              <Stop offset="100%" stopColor="#0A84FF" stopOpacity="0.3" />
+            <SvgGradient id="neonBlueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor={COLORS.neonBlue} stopOpacity="1" />
+              <Stop offset="100%" stopColor={COLORS.neonBlue} stopOpacity="0.4" />
             </SvgGradient>
           </Defs>
 
@@ -32,7 +60,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({ mode }) => {
               y2="240"
               stroke={COLORS.cardBorder}
               strokeWidth="0.5"
-              opacity="0.3"
+              opacity="0.2"
             />
           ))}
           {[...Array(6)].map((_, i) => (
@@ -44,69 +72,105 @@ export const CampusMap: React.FC<CampusMapProps> = ({ mode }) => {
               y2={i * 40}
               stroke={COLORS.cardBorder}
               strokeWidth="0.5"
-              opacity="0.3"
+              opacity="0.2"
             />
           ))}
 
-          {/* Possible Routes (dashed gray) */}
+          {/* Possible Routes (dotted white) */}
           <Path
             d="M 40,180 L 100,160 L 160,180 L 220,160"
-            stroke={COLORS.textTertiary}
+            stroke={COLORS.dottedWhite}
             strokeWidth="2"
             strokeDasharray="4,4"
             fill="none"
-            opacity="0.4"
           />
           <Path
             d="M 80,200 L 120,180 L 180,200 L 240,180"
-            stroke={COLORS.textTertiary}
+            stroke={COLORS.dottedWhite}
             strokeWidth="2"
             strokeDasharray="4,4"
             fill="none"
-            opacity="0.4"
           />
 
-          {/* Most Used Routes (glowing blue) */}
+          {/* Most Used Routes (neon blue glow) */}
           <Path
             d="M 40,120 Q 80,80 160,120 T 280,120"
-            stroke="url(#routeGradient)"
-            strokeWidth="4"
+            stroke="url(#neonBlueGradient)"
+            strokeWidth="5"
             fill="none"
             opacity="1"
           />
           <Path
             d="M 60,140 L 140,100 L 220,140 L 260,100"
-            stroke="url(#routeGradient)"
-            strokeWidth="4"
+            stroke="url(#neonBlueGradient)"
+            strokeWidth="5"
             fill="none"
-            opacity="0.8"
+            opacity="0.9"
           />
 
-          {/* Campus location */}
-          <Circle cx="160" cy="80" r="20" fill={COLORS.orange} opacity="0.2" />
-          <Circle cx="160" cy="80" r="12" fill={COLORS.orange} />
+          {/* Campus location with glow */}
+          <Circle cx="160" cy="80" r="24" fill={COLORS.orangeGlow} opacity="0.4" />
+          <Circle cx="160" cy="80" r="14" fill={COLORS.orange} />
 
           {/* Starting points */}
-          <Circle cx="40" cy="120" r="6" fill={COLORS.blue} />
-          <Circle cx="60" cy="140" r="6" fill={COLORS.blue} />
-          <Circle cx="280" cy="120" r="6" fill={COLORS.blue} />
+          <Circle cx="40" cy="120" r="8" fill={COLORS.neonBlue} opacity="0.3" />
+          <Circle cx="40" cy="120" r="5" fill={COLORS.neonBlue} />
+          <Circle cx="60" cy="140" r="8" fill={COLORS.neonBlue} opacity="0.3" />
+          <Circle cx="60" cy="140" r="5" fill={COLORS.neonBlue} />
+          <Circle cx="280" cy="120" r="8" fill={COLORS.neonBlue} opacity="0.3" />
+          <Circle cx="280" cy="120" r="5" fill={COLORS.neonBlue} />
         </Svg>
+
+        {/* Pulsing Car Icons (React Native Animated) */}
+        <Animated.View
+          style={[
+            styles.carIcon,
+            { left: '15%', top: '48%', transform: [{ scale: pulseAnim1 }] },
+          ]}
+        >
+          <Ionicons name="car" size={16} color={COLORS.orange} />
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.carIcon,
+            { left: '50%', top: '38%', transform: [{ scale: pulseAnim2 }] },
+          ]}
+        >
+          <Ionicons name="car" size={16} color={COLORS.orange} />
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.carIcon,
+            { left: '75%', top: '55%', transform: [{ scale: pulseAnim3 }] },
+          ]}
+        >
+          <Ionicons name="car" size={16} color={COLORS.orange} />
+        </Animated.View>
 
         {/* Campus Label */}
         <View style={styles.campusLabel}>
-          <Ionicons name="school" size={16} color={COLORS.white} />
+          <Ionicons name="school" size={14} color={COLORS.white} />
           <Text style={styles.campusText}>NHCE Campus</Text>
         </View>
 
         {/* Legend */}
         <View style={styles.legend}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendLine, { backgroundColor: COLORS.blue }]} />
-            <Text style={styles.legendText}>Most Used Routes</Text>
+            <View style={[styles.legendLine, { backgroundColor: COLORS.neonBlue }]} />
+            <Text style={styles.legendText}>Most Used</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendLine, { backgroundColor: COLORS.textTertiary, opacity: 0.5 }]} />
-            <Text style={styles.legendText}>Possible Routes</Text>
+            <View
+              style={[
+                styles.legendLine,
+                { backgroundColor: COLORS.dottedWhite, opacity: 0.6 },
+              ]}
+            />
+            <Text style={styles.legendText}>Possible</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <Ionicons name="car" size={12} color={COLORS.orange} />
+            <Text style={styles.legendText}>Live</Text>
           </View>
         </View>
       </View>
@@ -122,17 +186,28 @@ const styles = StyleSheet.create({
     height: 260,
     backgroundColor: COLORS.cardSurface,
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.cardStroke,
+    borderWidth: 0.5,
+    borderColor: COLORS.glassWhiteBorder,
     marginHorizontal: SPACING.md,
     padding: SPACING.md,
     position: 'relative',
   },
+  carIcon: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: COLORS.cardSurface,
+    borderWidth: 1,
+    borderColor: COLORS.orange,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   campusLabel: {
     position: 'absolute',
-    top: 60,
+    top: 50,
     left: '50%',
-    transform: [{ translateX: -50 }],
+    transform: [{ translateX: -55 }],
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.xs,
@@ -156,8 +231,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cardSurface,
     borderRadius: BORDER_RADIUS.sm,
     padding: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderWidth: 0.5,
+    borderColor: COLORS.glassWhiteBorder,
   },
   legendItem: {
     flexDirection: 'row',
@@ -165,13 +240,13 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
   },
   legendLine: {
-    width: 20,
+    width: 16,
     height: 3,
     borderRadius: 2,
   },
   legendText: {
     fontSize: FONTS.sizes.xs,
     color: COLORS.white,
-    fontWeight: FONTS.weights.medium,
+    fontWeight: FONTS.weights.semibold,
   },
 });
