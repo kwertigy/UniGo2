@@ -1,20 +1,31 @@
-// CampusPool Professional Dark Palette
+// CampusPool Enhanced Professional Dark Palette
 
 export const COLORS = {
-  // Professional Dark Mode
-  background: '#000000',
+  // Enhanced Dark Mode (Better Depth)
+  background: '#1A1A1A',
+  backgroundRider: '#0F172A', // Midnight Navy for Rider
+  backgroundDriver: '#18181B', // Charcoal Grey for Driver
+  
   cardSurface: '#1C1C1E',
   cardBorder: '#2C2C2E',
+  cardStroke: '#3A3A3C',
   elevated: '#2C2C2E',
   
   // Primary Accent
-  orange: '#FF6B35',
-  orangeLight: '#FF8C61',
-  orangeGlow: 'rgba(255, 107, 53, 0.3)',
+  orange: '#FF7F50', // Vibrant Sunset Orange
+  orangeLight: '#FFB199',
+  orangeGlow: 'rgba(255, 127, 80, 0.3)',
+  orangeDark: '#FF6B35',
   
-  // Text (Apple System)
-  textPrimary: 'rgba(255, 255, 255, 0.9)',
-  textSecondary: '#8E8E93',
+  // Pink Pool
+  pinkPool: '#FF1493',
+  pinkPoolGlow: 'rgba(255, 20, 147, 0.4)',
+  pinkPoolBorder: 'rgba(255, 192, 203, 0.6)',
+  roseGold: '#E0A694',
+  
+  // Text (High Contrast)
+  textPrimary: 'rgba(255, 255, 255, 0.95)',
+  textSecondary: '#A8A8A8',
   textTertiary: '#636366',
   white: '#FFFFFF',
   
@@ -23,10 +34,12 @@ export const COLORS = {
   warning: '#FFD60A',
   error: '#FF453A',
   blue: '#0A84FF',
+  gold: '#FFD700',
   
   // Glassmorphism
-  glassDark: 'rgba(28, 28, 30, 0.8)',
+  glassDark: 'rgba(28, 28, 30, 0.15)',
   glassLight: 'rgba(255, 255, 255, 0.1)',
+  blur: 'rgba(0, 0, 0, 0.3)',
   
   // Gradients
   meshStart: '#0A0A0A',
@@ -52,7 +65,7 @@ export const BORDER_RADIUS = {
 };
 
 export const FONTS = {
-  family: '-apple-system, SF Pro Display, system-ui',
+  family: '-apple-system, SF Pro Display, Inter, system-ui',
   sizes: {
     xs: 11,
     sm: 13,
@@ -67,6 +80,7 @@ export const FONTS = {
     medium: '500',
     semibold: '600',
     bold: '700',
+    heavy: '800',
   },
 };
 
@@ -94,10 +108,17 @@ export const SHADOW_STYLES = {
     elevation: 6,
   },
   elevated: {
-    shadowColor: '#FF6B35',
+    shadowColor: COLORS.orange,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 10,
+  },
+  glow: {
+    shadowColor: COLORS.orange,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 12,
   },
 };

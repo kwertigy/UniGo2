@@ -9,6 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppStore } from './store/appStore';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RiderDashboard } from './components/RiderDashboard';
@@ -25,6 +26,7 @@ export default function Index() {
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
   const [showVibeCheck, setShowVibeCheck] = useState(false);
   const toggleAnim = useRef(new Animated.Value(0)).current;
+  const bgColorAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadPersistedData().then(() => {
@@ -38,6 +40,13 @@ export default function Index() {
     Animated.spring(toggleAnim, {
       toValue: mode === 'rider' ? 0 : 1,
       friction: 8,
+      tension: 40,
+      useNativeDriver: false,
+    }).start();
+    
+    Animated.timing(bgColorAnim, {
+      toValue: mode === 'rider' ? 0 : 1,
+      duration: 400,
       useNativeDriver: false,
     }).start();
   }, [mode]);
@@ -67,99 +76,128 @@ export default function Index() {
     outputRange: ['4%', '52%'],
   });
 
+  const backgroundColor = bgColorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [COLORS.backgroundRider, COLORS.backgroundDriver],
+  });
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logo}>
-          <Ionicons name="car-sport" size={26} color={COLORS.orange} />
-          <View>
-            <Text style={styles.logoText}>CampusPool</Text>
-            {user?.college && (
-              <Text style={styles.collegeText}>@ {user.college.short}</Text>
-            )}
+    <Animated.View style={[styles.container, { backgroundColor }]}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logo}>
+            <View style={styles.logoIcon}>
+              <Ionicons name="car-sport" size={24} color={COLORS.orange} />
+            </View>
+            <View>
+              <Text style={styles.logoText}>CampusPool</Text>
+              {user?.college && (
+                <Text style={styles.collegeText}>@ {user.college.short}</Text>
+              )}
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Floating Mode Toggle */}
-      <View style={styles.toggleContainer}>
-        <View style={[styles.togglePill, SHADOW_STYLES.subtle]}>
-          <Animated.View
-            style={[
-              styles.toggleIndicator,
-              {
-                left: toggleLeft,
-                backgroundColor: COLORS.orange,
-              },
-            ]}
-          />
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setMode('rider')}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.toggleText, mode === 'rider' && styles.toggleTextActive]}>
-              Rider
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setMode('driver')}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.toggleText, mode === 'driver' && styles.toggleTextActive]}>
-              Driver
-            </Text>
-          </TouchableOpacity>
+        {/* Enhanced Mode Toggle */}
+        <View style={styles.toggleContainer}>
+          <View style={[styles.togglePill, SHADOW_STYLES.card]}>
+            <Animated.View
+              style={[
+                styles.toggleIndicator,
+                {
+                  left: toggleLeft,
+                  backgroundColor: COLORS.orange,
+                },
+                SHADOW_STYLES.glow,
+              ]}
+            />
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={() => setMode('rider')}
+              activeOpacity={0.7}
+            >
+              <Ionicons 
+                name="person" 
+                size={18} 
+                color={mode === 'rider' ? COLORS.white : COLORS.textSecondary} 
+              />
+              <Text style={[styles.toggleText, mode === 'rider' && styles.toggleTextActive]}>
+                Rider
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={() => setMode('driver')}
+              activeOpacity={0.7}
+            >
+              <Ionicons 
+                name="car" 
+                size={18} 
+                color={mode === 'driver' ? COLORS.white : COLORS.textSecondary} 
+              />
+              <Text style={[styles.toggleText, mode === 'driver' && styles.toggleTextActive]}>
+                Driver
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {/* Dashboard Content */}
-      <View style={styles.content}>
-        {mode === 'rider' ? (
-          <RiderDashboard onSubscribe={handleSubscribe} />
-        ) : (
-          <DriverDashboard />
-        )}
-      </View>
+        {/* Dashboard Content */}
+        <View style={styles.content}>
+          {mode === 'rider' ? (
+            <RiderDashboard onSubscribe={handleSubscribe} />
+          ) : (
+            <DriverDashboard />
+          )}
+        </View>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[styles.fab, SHADOW_STYLES.elevated]}
-        onPress={() => setShowVibeCheck(true)}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="star" size={28} color={COLORS.white} />
-      </TouchableOpacity>
+        {/* Enhanced Floating Action Button */}
+        <TouchableOpacity
+          style={[styles.fab, SHADOW_STYLES.glow]}
+          onPress={() => setShowVibeCheck(true)}
+          activeOpacity={0.85}
+        >
+          <LinearGradient
+            colors={[COLORS.orange, COLORS.orangeDark]}
+            style={styles.fabGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Ionicons name="star" size={24} color={COLORS.white} />
+          </LinearGradient>
+        </TouchableOpacity>
 
-      {/* Modals */}
-      <OnboardingModal
-        visible={showOnboarding}
-        onComplete={handleOnboardingComplete}
-      />
-      <PaymentModal
-        visible={showPayment}
-        tier={selectedTier}
-        onSuccess={handlePaymentSuccess}
-        onClose={() => setShowPayment(false)}
-      />
-      <VibeCheckModal
-        visible={showVibeCheck}
-        driverName="Rahul"
-        onSubmit={handleRatingSubmit}
-        onClose={() => setShowVibeCheck(false)}
-      />
-    </SafeAreaView>
+        {/* Modals */}
+        <OnboardingModal
+          visible={showOnboarding}
+          onComplete={handleOnboardingComplete}
+        />
+        <PaymentModal
+          visible={showPayment}
+          tier={selectedTier}
+          onSuccess={handlePaymentSuccess}
+          onClose={() => setShowPayment(false)}
+        />
+        <VibeCheckModal
+          visible={showVibeCheck}
+          driverName="Rahul"
+          onSubmit={handleRatingSubmit}
+          onClose={() => setShowVibeCheck(false)}
+        />
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     paddingHorizontal: SPACING.lg,
@@ -170,16 +208,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.md,
   },
+  logoIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.cardSurface,
+    borderWidth: 1,
+    borderColor: COLORS.cardStroke,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   logoText: {
     fontSize: FONTS.sizes.xl,
-    fontWeight: FONTS.weights.bold,
+    fontWeight: FONTS.weights.heavy,
     color: COLORS.textPrimary,
     letterSpacing: -0.5,
   },
   collegeText: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
-    fontWeight: FONTS.weights.medium,
+    fontWeight: FONTS.weights.semibold,
   },
   toggleContainer: {
     paddingHorizontal: SPACING.lg,
@@ -192,7 +240,7 @@ const styles = StyleSheet.create({
     padding: 4,
     position: 'relative',
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: COLORS.cardStroke,
   },
   toggleIndicator: {
     position: 'absolute',
@@ -203,6 +251,8 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     flex: 1,
+    flexDirection: 'row',
+    gap: SPACING.xs,
     paddingVertical: SPACING.sm + 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -211,7 +261,7 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: FONTS.sizes.md,
     color: COLORS.textSecondary,
-    fontWeight: FONTS.weights.semibold,
+    fontWeight: FONTS.weights.bold,
   },
   toggleTextActive: {
     color: COLORS.white,
@@ -223,10 +273,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: SPACING.xl,
     right: SPACING.xl,
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.orange,
+    overflow: 'hidden',
+  },
+  fabGradient: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
