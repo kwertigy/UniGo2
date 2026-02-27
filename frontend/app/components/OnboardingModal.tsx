@@ -228,7 +228,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
               <Ionicons name="shield-checkmark" size={64} color={COLORS.orange} />
             </View>
             <Text style={styles.formTitle}>Verify Your Identity</Text>
-            <Text style={styles.formSubtitle}>Use your official NHCE email address</Text>
+            <Text style={styles.formSubtitle}>Use your college or personal email address</Text>
 
             <View style={styles.campusBadge}>
               <Ionicons name="school" size={16} color={COLORS.orange} />
@@ -239,7 +239,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
               <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
               <TextInput
                 style={styles.floatingInput}
-                placeholder="your.name@newhorizonindia.edu"
+                placeholder="your.email@example.com"
                 placeholderTextColor={COLORS.textTertiary}
                 value={email}
                 onChangeText={(text) => {
