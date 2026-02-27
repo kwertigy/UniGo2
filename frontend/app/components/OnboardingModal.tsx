@@ -8,6 +8,7 @@ import {
   TextInput,
   Animated,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,10 +22,13 @@ interface OnboardingModalProps {
   onComplete: () => void;
 }
 
+const VALID_EMAIL_DOMAIN = '@newhorizonindia.edu';
+
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onComplete }) => {
   const [step, setStep] = useState<'welcome' | 'college' | 'email' | 'verifying' | 'success'>('welcome');
   const [selectedCollege, setSelectedCollege] = useState(COLLEGES[0]);
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [showCollegeList, setShowCollegeList] = useState(false);
   const { setUser, setCollege } = useAppStore();
   
@@ -47,7 +51,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
         }),
       ]).start();
       
-      // Car animation loop
       Animated.loop(
         Animated.sequence([
           Animated.timing(carAnim, {
@@ -65,7 +68,27 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
     }
   }, [visible]);
 
+  const validateEmail = (emailInput: string): boolean => {
+    setEmailError('');
+    
+    if (!emailInput) {
+      setEmailError('Email is required');
+      return false;
+    }
+    
+    if (!emailInput.endsWith(VALID_EMAIL_DOMAIN)) {
+      setEmailError(`CampusPool is exclusive to NHCE students. Please use your ${VALID_EMAIL_DOMAIN} email.`);
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleVerify = () => {
+    if (!validateEmail(email)) {
+      return;
+    }
+    
     setStep('verifying');
     setTimeout(() => {
       setStep('success');
@@ -91,7 +114,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
 
   return (
     <View style={styles.container}>
-      {/* Mesh Gradient Background */}
       <LinearGradient
         colors={[COLORS.meshStart, COLORS.meshEnd, COLORS.background]}
         style={StyleSheet.absoluteFill}
@@ -110,7 +132,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
       >
         {step === 'welcome' && (
           <View style={styles.welcomeContainer}>
-            {/* Animated Car */}
             <View style={styles.animationContainer}>
               <View style={styles.pathLine} />
               <Animated.View
@@ -123,7 +144,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
               </Animated.View>
             </View>
 
-            <Text style={styles.welcomeTitle}>Welcome to{'\n'}CampusPool</Text>
+            <Text style={styles.welcomeTitle}>Welcome to{' \n'}CampusPool</Text>
             <Text style={styles.welcomeSubtitle}>
               Bangalore's Exclusive College{'\n'}Carpooling Experience
             </Text>
@@ -140,85 +161,110 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
         )}
 
         {step === 'college' && (
-          <View style={styles.formContainer}>
-            <Ionicons name="school-outline" size={64} color={COLORS.orange} />
-            <Text style={styles.formTitle}>Select Your Campus</Text>
-            <Text style={styles.formSubtitle}>Choose your college to get started</Text>
+          <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+            <View style={styles.formContainer}>
+              <Ionicons name="school-outline" size={64} color={COLORS.orange} />
+              <Text style={styles.formTitle}>Select Your Campus</Text>
+              <Text style={styles.formSubtitle}>Choose your college to get started</Text>
 
-            <TouchableOpacity
-              style={styles.glassDropdown}
-              onPress={() => setShowCollegeList(!showCollegeList)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.dropdownText}>{selectedCollege.name}</Text>
-              <Ionicons
-                name={showCollegeList ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color={COLORS.textSecondary}
-              />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.glassDropdown}
+                onPress={() => setShowCollegeList(!showCollegeList)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.dropdownText}>{selectedCollege.name}</Text>
+                <Ionicons
+                  name={showCollegeList ? 'chevron-up' : 'chevron-down'}
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
 
-            {showCollegeList && (
-              <ScrollView style={styles.collegeList}>
-                {COLLEGES.map((college) => (
-                  <TouchableOpacity
-                    key={college.id}
-                    style={[
-                      styles.collegeItem,
-                      selectedCollege.id === college.id && styles.selectedCollege,
-                    ]}
-                    onPress={() => {
-                      setSelectedCollege(college);
-                      setShowCollegeList(false);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text
+              {showCollegeList && (
+                <View style={styles.collegeList}>
+                  {COLLEGES.map((college) => (
+                    <TouchableOpacity
+                      key={college.id}
                       style={[
-                        styles.collegeItemText,
-                        selectedCollege.id === college.id && styles.selectedCollegeText,
+                        styles.collegeItem,
+                        selectedCollege.id === college.id && styles.selectedCollege,
                       ]}
+                      onPress={() => {
+                        setSelectedCollege(college);
+                        setShowCollegeList(false);
+                      }}
+                      activeOpacity={0.7}
                     >
-                      {college.name}
-                    </Text>
-                    {selectedCollege.id === college.id && (
-                      <Ionicons name="checkmark-circle" size={20} color={COLORS.orange} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
+                      <Text
+                        style={[
+                          styles.collegeItemText,
+                          selectedCollege.id === college.id && styles.selectedCollegeText,
+                        ]}
+                      >
+                        {college.name}
+                      </Text>
+                      {selectedCollege.id === college.id && (
+                        <Ionicons name="checkmark-circle" size={20} color={COLORS.orange} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => setStep('email')}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.primaryButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={() => setStep('email')}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         )}
 
         {step === 'email' && (
           <View style={styles.formContainer}>
-            <Ionicons name="mail-outline" size={64} color={COLORS.orange} />
-            <Text style={styles.formTitle}>Verify Your Email</Text>
-            <Text style={styles.formSubtitle}>Use your .edu email address</Text>
+            <View style={styles.shieldContainer}>
+              <Ionicons name="shield-checkmark" size={64} color={COLORS.orange} />
+            </View>
+            <Text style={styles.formTitle}>Verify Your Identity</Text>
+            <Text style={styles.formSubtitle}>Use your official NHCE email address</Text>
 
             <View style={styles.campusBadge}>
+              <Ionicons name="school" size={16} color={COLORS.orange} />
               <Text style={styles.campusBadgeText}>CampusPool @ {selectedCollege.short}</Text>
             </View>
 
-            <TextInput
-              style={styles.floatingInput}
-              placeholder="your.name@college.edu"
-              placeholderTextColor={COLORS.textTertiary}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
+            <View style={styles.inputContainer}>
+              <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
+              <TextInput
+                style={styles.floatingInput}
+                placeholder="your.name@newhorizonindia.edu"
+                placeholderTextColor={COLORS.textTertiary}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setEmailError('');
+                }}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+            </View>
+
+            {emailError ? (
+              <View style={styles.errorCapsule}>
+                <Ionicons name="warning" size={16} color={COLORS.error} />
+                <Text style={styles.errorText}>{emailError}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.privacyNotice}>
+              <Ionicons name="lock-closed" size={14} color={COLORS.textTertiary} />
+              <Text style={styles.privacyText}>
+                Your data is encrypted and only accessible by authorized campus administrators.
+              </Text>
+            </View>
 
             <TouchableOpacity
               style={[styles.primaryButton, !email && styles.buttonDisabled]}
@@ -227,6 +273,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
               activeOpacity={0.85}
             >
               <Text style={styles.primaryButtonText}>Verify Email</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.requestAccessButton}>
+              <Text style={styles.requestAccessText}>Request Access for Your College</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -247,7 +297,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
             >
               <Ionicons name="sync" size={80} color={COLORS.orange} />
             </Animated.View>
-            <Text style={styles.verifyingText}>Verifying your email...</Text>
+            <Text style={styles.verifyingText}>Verifying your college email...</Text>
           </View>
         )}
 
@@ -255,6 +305,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ visible, onCom
           <View style={styles.centerContent}>
             <View style={styles.successCircle}>
               <Ionicons name="checkmark" size={60} color={COLORS.white} />
+            </View>
+            <View style={styles.verifiedBadge}>
+              <Ionicons name="school" size={16} color={COLORS.success} />
+              <Text style={styles.verifiedText}>College Verified</Text>
             </View>
             <Text style={styles.successTitle}>Welcome Aboard!</Text>
             <Text style={styles.successSubtitle}>Let's find you a ride</Text>
@@ -270,6 +324,9 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: COLORS.background,
     zIndex: 1000,
+  },
+  scrollContainer: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -313,6 +370,9 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     alignItems: 'center',
+  },
+  shieldContainer: {
+    marginBottom: SPACING.md,
   },
   formTitle: {
     fontSize: FONTS.sizes.xxl,
@@ -376,6 +436,9 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.weights.semibold,
   },
   campusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     backgroundColor: COLORS.orangeGlow,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
@@ -387,17 +450,55 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.weights.semibold,
     color: COLORS.orange,
   },
-  floatingInput: {
+  inputContainer: {
     width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
     backgroundColor: COLORS.glassDark,
     paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
+    marginBottom: SPACING.sm,
+  },
+  floatingInput: {
+    flex: 1,
+    paddingVertical: SPACING.md,
     fontSize: FONTS.sizes.md,
     color: COLORS.textPrimary,
-    marginBottom: SPACING.xl,
+  },
+  errorCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.error + '20',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: BORDER_RADIUS.pill,
+    marginBottom: SPACING.md,
+    width: '100%',
+  },
+  errorText: {
+    flex: 1,
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.error,
+  },
+  privacyNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.elevated,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.lg,
+    width: '100%',
+  },
+  privacyText: {
+    flex: 1,
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textTertiary,
+    lineHeight: 16,
   },
   primaryButton: {
     width: '100%',
@@ -418,6 +519,14 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.weights.bold,
     color: COLORS.white,
   },
+  requestAccessButton: {
+    marginTop: SPACING.lg,
+  },
+  requestAccessText: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    textDecorationLine: 'underline',
+  },
   centerContent: {
     alignItems: 'center',
     paddingVertical: SPACING.xxl,
@@ -434,7 +543,22 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.orange,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.success + '20',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: BORDER_RADIUS.pill,
+    marginBottom: SPACING.lg,
+  },
+  verifiedText: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: FONTS.weights.semibold,
+    color: COLORS.success,
   },
   successTitle: {
     fontSize: FONTS.sizes.xxl,
