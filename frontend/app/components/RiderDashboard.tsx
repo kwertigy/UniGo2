@@ -116,62 +116,7 @@ export const RiderDashboard: React.FC<RiderDashboardProps> = ({ onSubscribe }) =
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Available Rides to Campus</Text>
         <GlassContainer style={styles.mapContainer}>
-          {Platform.OS === 'web' ? (
-            /* Web Map Placeholder */
-            <View style={styles.mapPlaceholder}>
-              <MaterialCommunityIcons name="map-marker-path" size={64} color={COLORS.electricBlue} />
-              <Text style={styles.mapPlaceholderText}>Map View</Text>
-              <Text style={styles.mapPlaceholderSubtext}>Available on mobile app</Text>
-            </View>
-          ) : (
-            /* Native Map View */
-            MapView && (
-              <MapView
-                style={styles.map}
-                provider={PROVIDER_DEFAULT}
-                initialRegion={{
-                  latitude: NHCE_COORDINATES.latitude,
-                  longitude: NHCE_COORDINATES.longitude,
-                  latitudeDelta: 0.05,
-                  longitudeDelta: 0.05,
-                }}
-                customMapStyle={darkMapStyle}
-              >
-                {/* Campus Marker */}
-                <Marker
-                  coordinate={NHCE_COORDINATES}
-                  title="NHCE Campus"
-                >
-                  <View style={styles.campusMarker}>
-                    <Ionicons name="school" size={24} color={COLORS.white} />
-                  </View>
-                </Marker>
-
-                {/* Driver Markers */}
-                {MOCK_DRIVERS.map((driver) => (
-                  <Marker
-                    key={driver.id}
-                    coordinate={{ latitude: driver.latitude, longitude: driver.longitude }}
-                    title={driver.name}
-                  >
-                    <View style={styles.driverMarker}>
-                      <Ionicons name="car" size={20} color={COLORS.white} />
-                    </View>
-                  </Marker>
-                ))}
-
-                {/* Route Line */}
-                <Polyline
-                  coordinates={[
-                    COMMON_LOCATIONS[0],
-                    NHCE_COORDINATES,
-                  ]}
-                  strokeColor={COLORS.electricBlue}
-                  strokeWidth={3}
-                />
-              </MapView>
-            )
-          )}
+          <MapPlaceholder />
         </GlassContainer>
 
         {/* Available Drivers */}
