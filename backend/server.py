@@ -11,8 +11,18 @@ import uuid
 from datetime import datetime
 import json
 
+import json
+from json import JSONEncoder
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Custom JSON encoder for datetime
+class DateTimeEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
