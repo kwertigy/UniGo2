@@ -53,6 +53,9 @@ interface RiderDashboardProps {
   onSubscribe: (tier: SubscriptionTier) => void;
 }
 
+export const RiderDashboard: React.FC<RiderDashboardProps> = ({ onSubscribe }) => {
+  const [pinkPoolEnabled, setPinkPoolEnabled] = React.useState(false);
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Subscription Tiers */}
