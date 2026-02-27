@@ -1,32 +1,36 @@
-// CampusPool Soft UI Theme
+// CampusPool Professional Dark Palette
 
 export const COLORS = {
-  // Soft UI Light Mode
-  background: '#F7F8FA',
-  white: '#FFFFFF',
+  // Professional Dark Mode
+  background: '#000000',
+  cardSurface: '#1C1C1E',
+  cardBorder: '#2C2C2E',
+  elevated: '#2C2C2E',
   
   // Primary Accent
-  peach: '#F28C68',
-  peachLight: '#FFB199',
-  peachDark: '#E86D45',
+  orange: '#FF6B35',
+  orangeLight: '#FF8C61',
+  orangeGlow: 'rgba(255, 107, 53, 0.3)',
   
-  // System Grays (Apple Style)
-  gray1: '#1C1C1E',
-  gray2: '#3A3A3C',
-  gray3: '#48484A',
-  gray4: '#8E8E93',
-  gray5: '#C7C7CC',
-  gray6: '#E5E5EA',
+  // Text (Apple System)
+  textPrimary: 'rgba(255, 255, 255, 0.9)',
+  textSecondary: '#8E8E93',
+  textTertiary: '#636366',
+  white: '#FFFFFF',
   
   // Functional
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  blue: '#007AFF',
+  success: '#32D74B',
+  warning: '#FFD60A',
+  error: '#FF453A',
+  blue: '#0A84FF',
   
-  // Shadows
-  shadowLight: 'rgba(0, 0, 0, 0.08)',
-  shadowMedium: 'rgba(0, 0, 0, 0.12)',
+  // Glassmorphism
+  glassDark: 'rgba(28, 28, 30, 0.8)',
+  glassLight: 'rgba(255, 255, 255, 0.1)',
+  
+  // Gradients
+  meshStart: '#0A0A0A',
+  meshEnd: '#1A1A1D',
 };
 
 export const SPACING = {
@@ -40,21 +44,29 @@ export const SPACING = {
 
 export const BORDER_RADIUS = {
   sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  pill: 100,
   full: 9999,
 };
 
 export const FONTS = {
-  regular: '-apple-system',
+  family: '-apple-system, SF Pro Display, system-ui',
   sizes: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 20,
-    xl: 28,
-    xxl: 34,
+    xs: 11,
+    sm: 13,
+    md: 15,
+    lg: 17,
+    xl: 22,
+    xxl: 28,
+    huge: 34,
+  },
+  weights: {
+    regular: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
   },
 };
 
@@ -67,18 +79,25 @@ export const COLLEGES = [
 ];
 
 export const SHADOW_STYLES = {
-  soft: {
+  subtle: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  card: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  medium: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
+  elevated: {
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
   },
 };
