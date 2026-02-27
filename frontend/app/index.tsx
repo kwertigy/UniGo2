@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -24,12 +24,12 @@ export default function Index() {
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
   const [showVibeCheck, setShowVibeCheck] = useState(false);
-  const toggleAnim = React.useRef(new Animated.Value(0)).current;
+  const toggleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadPersistedData().then(() => {
       if (!isOnboarded) {
-        setTimeout(() => setShowOnboarding(true), 500);
+        setTimeout(() => setShowOnboarding(true), 300);
       }
     });
   }, []);
@@ -69,28 +69,30 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       
-      {/* Floating Header */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.logo}>
-          <Ionicons name="car-sport" size={24} color={COLORS.peach} />
-          <Text style={styles.logoText}>CampusPool</Text>
-          {user?.college && (
-            <Text style={styles.collegeText}>@ {user.college.short}</Text>
-          )}
+          <Ionicons name="car-sport" size={26} color={COLORS.orange} />
+          <View>
+            <Text style={styles.logoText}>CampusPool</Text>
+            {user?.college && (
+              <Text style={styles.collegeText}>@ {user.college.short}</Text>
+            )}
+          </View>
         </View>
       </View>
 
       {/* Floating Mode Toggle */}
       <View style={styles.toggleContainer}>
-        <View style={[styles.togglePill, SHADOW_STYLES.soft]}>
+        <View style={[styles.togglePill, SHADOW_STYLES.subtle]}>
           <Animated.View
             style={[
               styles.toggleIndicator,
               {
                 left: toggleLeft,
-                backgroundColor: COLORS.peach,
+                backgroundColor: COLORS.orange,
               },
             ]}
           />
@@ -126,9 +128,9 @@ export default function Index() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={[styles.fab, SHADOW_STYLES.medium]}
+        style={[styles.fab, SHADOW_STYLES.elevated]}
         onPress={() => setShowVibeCheck(true)}
-        activeOpacity={0.9}
+        activeOpacity={0.85}
       >
         <Ionicons name="star" size={28} color={COLORS.white} />
       </TouchableOpacity>
@@ -166,47 +168,50 @@ const styles = StyleSheet.create({
   logo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: SPACING.md,
   },
   logoText: {
-    fontSize: FONTS.sizes.lg,
-    fontWeight: '700',
-    color: COLORS.gray1,
+    fontSize: FONTS.sizes.xl,
+    fontWeight: FONTS.weights.bold,
+    color: COLORS.textPrimary,
+    letterSpacing: -0.5,
   },
   collegeText: {
     fontSize: FONTS.sizes.sm,
-    color: COLORS.gray4,
-    fontWeight: '500',
+    color: COLORS.textSecondary,
+    fontWeight: FONTS.weights.medium,
   },
   toggleContainer: {
     paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   togglePill: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.full,
+    backgroundColor: COLORS.cardSurface,
+    borderRadius: BORDER_RADIUS.pill,
     padding: 4,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
   },
   toggleIndicator: {
     position: 'absolute',
     width: '46%',
     height: '86%',
-    borderRadius: BORDER_RADIUS.full,
+    borderRadius: BORDER_RADIUS.pill,
     top: '7%',
   },
   toggleButton: {
     flex: 1,
-    paddingVertical: SPACING.sm,
+    paddingVertical: SPACING.sm + 2,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
   },
   toggleText: {
     fontSize: FONTS.sizes.md,
-    color: COLORS.gray4,
-    fontWeight: '600',
+    color: COLORS.textSecondary,
+    fontWeight: FONTS.weights.semibold,
   },
   toggleTextActive: {
     color: COLORS.white,
@@ -221,7 +226,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: BORDER_RADIUS.full,
-    backgroundColor: COLORS.peach,
+    backgroundColor: COLORS.orange,
     justifyContent: 'center',
     alignItems: 'center',
   },
