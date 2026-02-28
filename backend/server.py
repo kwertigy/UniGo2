@@ -239,7 +239,7 @@ async def create_driver_route(route_input: DriverRouteCreate):
     await manager.broadcast(json.dumps({
         "type": "new_route",
         "route": route_obj.dict()
-    }))
+    }, cls=DateTimeEncoder))
     
     return route_obj
 
@@ -274,7 +274,7 @@ async def create_ride_request(request_input: RideRequestCreate):
         json.dumps({
             "type": "new_ride_request",
             "request": request_obj.dict()
-        }),
+        }, cls=DateTimeEncoder),
         request_input.driver_id
     )
     
@@ -326,7 +326,7 @@ async def accept_ride_request(request_id: str):
         json.dumps({
             "type": "ride_accepted",
             "match": match.dict()
-        }),
+        }, cls=DateTimeEncoder),
         request["rider_id"]
     )
     

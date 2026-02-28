@@ -7,17 +7,19 @@ import {
   TouchableOpacity,
   StatusBar,
   Animated,
+  Modal,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAppStore } from './store/appStore';
-import { OnboardingModal } from './components/OnboardingModal';
-import { RiderDashboard } from './components/RiderDashboard';
-import { DriverDashboard } from './components/DriverDashboard';
-import { PaymentModal } from './components/PaymentModal';
-import { VibeCheckModal } from './components/VibeCheckModal';
-import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOW_STYLES } from './constants/theme';
-import { SubscriptionTier, Rating } from './types';
+import { useAppStore } from './_store/appStore';
+import { OnboardingModal } from './_components/OnboardingModal';
+import { RiderDashboard } from './_components/RiderDashboard';
+import { DriverDashboard } from './_components/DriverDashboard';
+import { PaymentModal } from './_components/PaymentModal';
+import { VibeCheckModal } from './_components/VibeCheckModal';
+import { COLORS, SPACING, FONTS, BORDER_RADIUS, SHADOW_STYLES } from './_constants/theme';
+import { SubscriptionTier, Rating } from './_types';
 
 export default function Index() {
   const { user, isOnboarded, mode, setOnboarded, setMode, loadPersistedData } = useAppStore();
@@ -25,8 +27,17 @@ export default function Index() {
   const [showPayment, setShowPayment] = useState(false);
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
   const [showVibeCheck, setShowVibeCheck] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
   const toggleAnim = useRef(new Animated.Value(0)).current;
   const bgColorAnim = useRef(new Animated.Value(0)).current;
+
+  // Default eco stats if user doesn't have any
+  const ecoStats = user?.ecoStats || {
+    carbonSavedKg: 24.5,
+    timeSavedMinutes: 180,
+    totalRides: 15,
+    treesEquivalent: 1,
+  };
 
   useEffect(() => {
     loadPersistedData().then(() => {
@@ -99,6 +110,23 @@ export default function Index() {
               )}
             </View>
           </View>
+          
+          {/* Profile & Stats Button */}
+          <TouchableOpacity 
+            style={styles.profileButton}
+            onPress={() => setShowStatsModal(true)}
+          >
+            {user?.profilePicture ? (
+              <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
+            ) : (
+              <View style={styles.profileAvatar}>
+                <Ionicons name="person" size={20} color={COLORS.white} />
+              </View>
+            )}
+            <View style={styles.ecoIndicator}>
+              <Ionicons name="leaf" size={10} color={COLORS.white} />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Enhanced Mode Toggle */}
@@ -187,6 +215,96 @@ export default function Index() {
           onSubmit={handleRatingSubmit}
           onClose={() => setShowVibeCheck(false)}
         />
+
+        {/* Eco Stats Modal */}
+        <Modal
+          visible={showStatsModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowStatsModal(false)}
+        >
+          <View style={styles.statsModalOverlay}>
+            <View style={styles.statsModalContent}>
+              {/* Profile Header */}
+              <View style={styles.statsProfileHeader}>
+                <View style={styles.statsAvatar}>
+                  {user?.profilePicture ? (
+                    <Image source={{ uri: user.profilePicture }} style={styles.statsProfileImage} />
+                  ) : (
+                    <Ionicons name="person" size={40} color={COLORS.orange} />
+                  )}
+                </View>
+                <Text style={styles.statsUserName}>{user?.name || 'Campus Pooler'}</Text>
+                <Text style={styles.statsUserCollege}>{user?.college?.name || 'Your College'}</Text>
+              </View>
+
+              {/* Eco Impact Stats */}
+              <Text style={styles.statsTitle}>Your Eco Impact</Text>
+              
+              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <LinearGradient
+                    colors={['#10B981', '#059669']}
+                    style={styles.statIconBg}
+                  >
+                    <Ionicons name="leaf" size={24} color={COLORS.white} />
+                  </LinearGradient>
+                  <Text style={styles.statValue}>{ecoStats.carbonSavedKg.toFixed(1)} kg</Text>
+                  <Text style={styles.statLabel}>CO₂ Saved</Text>
+                </View>
+
+                <View style={styles.statCard}>
+                  <LinearGradient
+                    colors={['#3B82F6', '#2563EB']}
+                    style={styles.statIconBg}
+                  >
+                    <Ionicons name="time" size={24} color={COLORS.white} />
+                  </LinearGradient>
+                  <Text style={styles.statValue}>{Math.floor(ecoStats.timeSavedMinutes / 60)}h {ecoStats.timeSavedMinutes % 60}m</Text>
+                  <Text style={styles.statLabel}>Time Saved</Text>
+                </View>
+
+                <View style={styles.statCard}>
+                  <LinearGradient
+                    colors={[COLORS.orange, COLORS.orangeDark]}
+                    style={styles.statIconBg}
+                  >
+                    <Ionicons name="car" size={24} color={COLORS.white} />
+                  </LinearGradient>
+                  <Text style={styles.statValue}>{ecoStats.totalRides}</Text>
+                  <Text style={styles.statLabel}>Total Rides</Text>
+                </View>
+
+                <View style={styles.statCard}>
+                  <LinearGradient
+                    colors={['#22C55E', '#16A34A']}
+                    style={styles.statIconBg}
+                  >
+                    <Ionicons name="flower" size={24} color={COLORS.white} />
+                  </LinearGradient>
+                  <Text style={styles.statValue}>{ecoStats.treesEquivalent}</Text>
+                  <Text style={styles.statLabel}>Trees Equivalent</Text>
+                </View>
+              </View>
+
+              {/* Impact Message */}
+              <View style={styles.impactMessage}>
+                <Ionicons name="earth" size={24} color={COLORS.emeraldGreen} />
+                <Text style={styles.impactText}>
+                  By carpooling, you're helping reduce traffic and emissions on your campus routes!
+                </Text>
+              </View>
+
+              {/* Close Button */}
+              <TouchableOpacity 
+                style={styles.statsCloseButton}
+                onPress={() => setShowStatsModal(false)}
+              >
+                <Text style={styles.statsCloseText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </Animated.View>
   );
@@ -200,6 +318,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
   },
@@ -227,6 +348,149 @@ const styles = StyleSheet.create({
   collegeText: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
+    fontWeight: FONTS.weights.semibold,
+  },
+  // Profile button styles
+  profileButton: {
+    position: 'relative',
+  },
+  profileAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.cardSurface,
+    borderWidth: 2,
+    borderColor: COLORS.orange,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: COLORS.orange,
+  },
+  ecoIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.emeraldGreen,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.slate900,
+  },
+  // Stats modal styles
+  statsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.lg,
+  },
+  statsModalContent: {
+    backgroundColor: COLORS.cardSurface,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.xl,
+    width: '100%',
+    maxWidth: 380,
+  },
+  statsProfileHeader: {
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+  },
+  statsAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.slate800,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    borderWidth: 3,
+    borderColor: COLORS.orange,
+  },
+  statsProfileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  statsUserName: {
+    fontSize: FONTS.sizes.xl,
+    fontWeight: FONTS.weights.bold,
+    color: COLORS.white,
+  },
+  statsUserCollege: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.whiteAlpha60,
+    marginTop: SPACING.xs,
+  },
+  statsTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: FONTS.weights.bold,
+    color: COLORS.white,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.md,
+    marginBottom: SPACING.lg,
+  },
+  statCard: {
+    width: '47%',
+    backgroundColor: COLORS.slate800,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    alignItems: 'center',
+  },
+  statIconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  statValue: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: FONTS.weights.bold,
+    color: COLORS.white,
+  },
+  statLabel: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.whiteAlpha60,
+    marginTop: SPACING.xs,
+  },
+  impactMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.emeraldGreen + '20',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  impactText: {
+    flex: 1,
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.emeraldGreen,
+    lineHeight: 20,
+  },
+  statsCloseButton: {
+    backgroundColor: COLORS.slate800,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+  },
+  statsCloseText: {
+    color: COLORS.whiteAlpha60,
+    fontSize: FONTS.sizes.md,
     fontWeight: FONTS.weights.semibold,
   },
   toggleContainer: {
