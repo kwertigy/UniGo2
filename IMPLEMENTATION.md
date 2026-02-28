@@ -97,9 +97,4 @@ GET    /api/health             - Health check
 - **Animations**: All interactive elements use spring physics.
 - **Backend**: Fully implemented CRUD for users, rides, routes, ratings.
 
-### 🚀 Ready for Testing
 
-The app is ready for frontend and backend testing. All core features are implemented with premium UI/UX.
-
-**Preview URL**: https://rideshare-hub-127.preview.emergentagent.com
-**Backend API**: https://rideshare-hub-127.preview.emergentagent.com/api/
